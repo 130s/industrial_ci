@@ -66,7 +66,6 @@ function travis_time_end {
 function error {
     travis_time_end 31
     trap - ERR
-    exit 1
 }
 
 BUILDER=catkin
