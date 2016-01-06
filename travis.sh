@@ -215,6 +215,26 @@ fi
 
 travis_time_end  # catkin_run_tests
 
+travis_time_start pkgs_version
+
+res_dpkg=$(dpkg -l | grep '^ii' | grep ros- | awk '{print $2 " " $3}')
+IFS=$'\n'  # http://askubuntu.com/questions/344407/how-to-read-complete-line-in-for-loop-with-spaces
+for i in ${res_dpkg}
+do 
+  printf "%s $i "
+  p_underscore=$(echo ${i} | awk '{print $1}' | sed 's/ros-\([a-zA-Z]*\)-//' | tr '-' '_');
+  printf "%s ${p_underscore} "
+  rospackfind_result=$(rospack -q find ${p_underscore})
+  printf "%s ${rospackfind_result} "
+  echo "${rospackfind_result}" | grep -o '[^/]*$' | xargs rosversion
+  if [[ -z "$rospackfind_result" ]]; then
+    continue;
+  fi
+done
+
+travis_time_end # pkgs_version
+
+
 if [ "$NOT_TEST_INSTALL" != "true" ]; then
 
     travis_time_start catkin_install_build
