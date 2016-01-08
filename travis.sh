@@ -70,6 +70,12 @@ CI_PARENT_DIR=.ci_config  # This is the folder name that is used in downstream r
 
 trap error ERR
 
+if [ "$CUSTOMSCRIPT_SETUP" ]; then
+    travis_time_start custom_setup
+    source $CUSTOMSCRIPT_SETUP;  # Single shell script file is assumed.
+    travis_time_end #custom_setup
+fi
+
 git branch --all
 if [ "`git diff origin/master FETCH_HEAD $CI_PARENT_DIR`" != "" ] ; then DIFF=`git diff origin/master FETCH_HEAD $CI_PARENT_DIR | grep .*Subproject | sed s'@.*Subproject commit @@' | sed 'N;s/\n/.../'`; (cd $CI_PARENT_DIR/;git log --oneline --graph --left-right --first-parent --decorate $DIFF) | tee /tmp/$$-travis-diff.log; grep -c '<' /tmp/$$-travis-diff.log && exit 1; echo "ok"; fi
 
