@@ -113,6 +113,7 @@ Note that some of these currently tied only to a single option, but we still lea
 * `BEFORE_SCRIPT`: (default: not set): Used to specify shell commands that run before building packages.
 * `BUILD_PKGS` (default: not set): `PKGS_DOWNSTREAM` will be filled with packages specified with this. Also these packages are to be built when `NOT_TEST_INSTALL` is set.
 * `BUILDER` (default: catkin): Currently only `catkin` is implemented (and with that `catkin_tools` is used instead of `catkin_make`. See `this discussion <https://github.com/ros-industrial/industrial_ci/issues/3>`_).
+* `CUSTOMSCRIPT_SETUP` (default: not set): You can specify a single bash script. See `this discussion <https://github.com/ros-industrial/industrial_ci/issues/14>`_ for more detail.
 * `CI_PARENT_DIR` (default: .ci_config): (NOT recommended to specify) This is the folder name that is used in downstream repositories in order to point to this repo.
 * `NOT_TEST_INSTALL` (default: not set): If you do NOT want to test `install` space, set this as true.
 * `PKGS_DOWNSTREAM` (default: explained): Packages in downstream to be tested. By default, `TARGET_PKGS` is used if set, if not then `BUILD_PKGS` is used.
