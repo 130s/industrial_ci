@@ -137,21 +137,26 @@ travis_time_start setup_rosws
 # Create workspace
 mkdir -p ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
 cd ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
-# When USE_DEB is true, the dependended packages that need to be built from source are downloaded based on .travis.rosinstall file.
-### Currently disabled
-###if [ "$USE_DEB" == false ]; then
-###    $ROSWS init .
+# When ROSINSTALL_PATHS are not empty, the dependended packages that need to be built from source are downloaded based on the .rosintall file(s) passed.
+if [ ! -z "$ROSINSTALL_PATHS" ]; then
+    echo "Merge [ $ROSINSTALL_PATHS ] files."
+    $ROSWS init .
+    for url_rosinstall in $(echo $ROSINSTALL_PATHS | tr ";" "\n"); do
+        echo "-- Merging [$url_rosinstall]"
+        $ROSWS merge $url_rosinstall
+    done
 ###    if [ -e $CI_SOURCE_PATH/.travis.rosinstall ]; then
 ###        # install (maybe unreleased version) dependencies from source
 ###        $ROSWS merge file://$CI_SOURCE_PATH/.travis.rosinstall
 ###    fi
+# TODO The following feature is good so needs implemented.
 ###    if [ -e $CI_SOURCE_PATH/.travis.rosinstall.$ROS_DISTRO ]; then
 ###        # install (maybe unreleased version) dependencies from source for specific ros version
 ###        $ROSWS merge file://$CI_SOURCE_PATH/.travis.rosinstall.$ROS_DISTRO
 ###    fi
-###    $ROSWS update
-###    $ROSWS set $DOWNSTREAM_REPO_NAME http://github.com/$TRAVIS_REPO_SLUG --git -y
-###fi
+    $ROSWS update
+    $ROSWS set $DOWNSTREAM_REPO_NAME http://github.com/$TRAVIS_REPO_SLUG --git -y
+fi
 # CI_SOURCE_PATH is the path of the downstream repository that we are testing. Link it to the catkin workspace
 ln -s $CI_SOURCE_PATH .
 ####if [ "$USE_DEB" == source -a -e $DOWNSTREAM_REPO_NAME/setup_upstream.sh ]; then $ROSWS init .; $DOWNSTREAM_REPO_NAME/setup_upstream.sh -w ~/ros/ws_$DOWNSTREAM_REPO_NAME ; $ROSWS update; fi
