@@ -64,9 +64,10 @@ function error {
     exit 1
 }
 
-BUILDER=catkin
-ROSWS=wstool
-CI_PARENT_DIR=.ci_config  # This is the folder name that is used in downstream repositories in order to point to this repo.
+BUILDER=${BUILDER:=catkin}
+BUILDER_CMI=catkin_make_isolated
+ROSWS=${ROSWS:=wstool}
+CI_PARENT_DIR=${CI_PARENT_DIR:=.ci_config}  # This is the folder name that is used in downstream repositories in order to point to this repo.
 
 trap error ERR
 
@@ -78,12 +79,17 @@ travis_time_start setup_ros
 # Define some config vars
 export CI_SOURCE_PATH=$(pwd)
 export DOWNSTREAM_REPO_NAME=${PWD##*/}
+if [ ! "$CATKIN_PARALLEL_JOBS" ]; then export CATKIN_PARALLEL_JOBS="-p4"; fi
 if [ ! "$CATKIN_PARALLEL_TEST_JOBS" ]; then export CATKIN_PARALLEL_TEST_JOBS="$CATKIN_PARALLEL_JOBS"; fi
 if [ ! "$ROS_PARALLEL_JOBS" ]; then export ROS_PARALLEL_JOBS="-j8"; fi
 if [ ! "$ROS_PARALLEL_TEST_JOBS" ]; then export ROS_PARALLEL_TEST_JOBS="$ROS_PARALLEL_JOBS"; fi
 # If not specified, use ROS Shadow repository http://wiki.ros.org/ShadowRepository
 if [ ! "$ROS_REPOSITORY_PATH" ]; then export ROS_REPOSITORY_PATH="http://packages.ros.org/ros-shadow-fixed/ubuntu"; fi
 echo "Testing branch $TRAVIS_BRANCH of $DOWNSTREAM_REPO_NAME"
+if [ ! "$ROSINSTALL_FILENAME" ]; then export ROSINSTALL_FILENAME=".rosinstall.travis"; fi
+if [ ! "$USE_DEB" ]; then export USE_DEB="true"; fi
+DIR_INSTALLSPACE=install;
+
 # Set apt repo
 sudo -E sh -c 'echo "deb $ROS_REPOSITORY_PATH `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
 # Common ROS install preparation
@@ -139,19 +145,19 @@ mkdir -p ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
 cd ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
 # When USE_DEB is true, the dependended packages that need to be built from source are downloaded based on .travis.rosinstall file.
 ### Currently disabled
-###if [ "$USE_DEB" == false ]; then
-###    $ROSWS init .
-###    if [ -e $CI_SOURCE_PATH/.travis.rosinstall ]; then
-###        # install (maybe unreleased version) dependencies from source
-###        $ROSWS merge file://$CI_SOURCE_PATH/.travis.rosinstall
-###    fi
-###    if [ -e $CI_SOURCE_PATH/.travis.rosinstall.$ROS_DISTRO ]; then
-###        # install (maybe unreleased version) dependencies from source for specific ros version
-###        $ROSWS merge file://$CI_SOURCE_PATH/.travis.rosinstall.$ROS_DISTRO
-###    fi
-###    $ROSWS update
-###    $ROSWS set $DOWNSTREAM_REPO_NAME http://github.com/$TRAVIS_REPO_SLUG --git -y
-###fi
+if [ "$USE_DEB" == false ]; then
+    $ROSWS init .
+    if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME ]; then
+        # install (maybe unreleased version) dependencies from source
+        $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME
+    fi
+    if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO ]; then
+        # install (maybe unreleased version) dependencies from source for specific ros version
+        $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO
+    fi
+    $ROSWS update
+    $ROSWS set $DOWNSTREAM_REPO_NAME http://github.com/$TRAVIS_REPO_SLUG --git -y
+fi
 # CI_SOURCE_PATH is the path of the downstream repository that we are testing. Link it to the catkin workspace
 ln -s $CI_SOURCE_PATH .
 ####if [ "$USE_DEB" == source -a -e $DOWNSTREAM_REPO_NAME/setup_upstream.sh ]; then $ROSWS init .; $DOWNSTREAM_REPO_NAME/setup_upstream.sh -w ~/ros/ws_$DOWNSTREAM_REPO_NAME ; $ROSWS update; fi
@@ -187,19 +193,23 @@ $ROSWS --version
 $ROSWS info -t .
 cd ../
 
-travis_time_start catkin_build
+travis_time_start build
 
 ## BEGIN: travis' script: # All commands must exit with code 0 on success. Anything else is considered failure.
 source /opt/ros/$ROS_DISTRO/setup.bash # re-source setup.bash for setting environmet vairable for package installed via rosdep
 # for catkin
 if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order ${CI_SOURCE_PATH} --only-names`; fi
 if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS"); fi
-if [ "$BUILDER" == catkin ]; then catkin build -i -v --summarize  --no-status $BUILD_PKGS $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ; fi
+if [ "$BUILDER" == catkin ]; then
+    catkin build -i -v --summarize  --no-status $BUILD_PKGS $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ;
+elif [ "$BUILDER" == "$BUILDER_CMI" ]; then
+    catkin_make_isolated --merge $BUILD_PKGS $ROS_PARALLEL_JOBS;
+fi
 
-travis_time_end  # catkin_build
+travis_time_end  # build
 
 if [ "$NOT_TEST_BUILD" != "true" ]; then
-    travis_time_start catkin_run_tests
+    travis_time_start run_tests
     
     # Patches for rostest that are only available in newer codes.
     # Some are already available via DEBs so that patches for them are not needed, but because EOLed distros (e.g. Hydro) where those patches are not released into may be still tested, all known patches are applied here.
@@ -213,14 +223,18 @@ if [ "$NOT_TEST_BUILD" != "true" ]; then
         source devel/setup.bash ; rospack profile # force to update ROS_PACKAGE_PATH for rostest
         catkin run_tests -iv --no-deps --no-status $PKGS_DOWNSTREAM $CATKIN_PARALLEL_TEST_JOBS --make-args $ROS_PARALLEL_TEST_JOBS --
         catkin_test_results build || error
+    elif [ "$BUILDER" == "$BUILDER_CMI" ]; then
+        source devel_isolated/setup.bash ; rospack profile # force to update ROS_PACKAGE_PATH for rostest
+        catkin_make_isolated --merge --force-cmake --catkin-make-args run_tests $ROS_PARALLEL_TEST_JOBS
+        catkin_test_results build_isolated || error
     fi
     
-    travis_time_end  # catkin_run_tests
+    travis_time_end  # run_tests
 fi
 
 if [ "$NOT_TEST_INSTALL" != "true" ]; then
 
-    travis_time_start catkin_install_build
+    travis_time_start install_build
 
     # Test if the packages in the downstream repo build.
     if [ "$BUILDER" == catkin ]; then
@@ -230,17 +244,23 @@ if [ "$NOT_TEST_INSTALL" != "true" ]; then
         source install/setup.bash
         rospack profile
         rospack plugins --attrib=plugin nodelet
+    elif [ "$BUILDER" == "$BUILDER_CMI" ]; then
+        rm -fr build devel
+        catkin_make_isolated --install --install-space $DIR_INSTALLSPACE $BUILD_PKGS $ROS_PARALLEL_JOBS
+        source $DIR_INSTALLSPACE/setup.bash
+        rospack profile
+        rospack plugins --attrib=plugin nodelet
     fi
 
-    travis_time_end  # catkin_install_build
-    travis_time_start catkin_install_run_tests
+    travis_time_end  # install_build
+    travis_time_start install_run_tests
 
     export EXIT_STATUS=0
     # Test if the unit tests in the packages in the downstream repo pass.
-    if [ "$BUILDER" == catkin ]; then
+    if [ "$BUILDER" == catkin ] || [ "$BUILDER" == "$BUILDER_CMI" ]; then
       for pkg in $PKGS_DOWNSTREAM; do
         echo "[$pkg] Started testing..."
-        rostest_files=$(find install/share/$pkg -iname '*.test')
+        rostest_files=$(find $DIR_INSTALLSPACE/share/$pkg -iname '*.test')
         echo "[$pkg] Found $(echo $rostest_files | wc -w) tests."
         for test_file in $rostest_files; do
           echo "[$pkg] Testing $test_file"
@@ -255,7 +275,7 @@ if [ "$NOT_TEST_INSTALL" != "true" ]; then
       [ $EXIT_STATUS -eq 0 ] || error  # unless all tests pass, raise error
     fi
 
-    travis_time_end  # catkin_install_run_tests
+    travis_time_end  # install_run_tests
 
 fi
 
@@ -265,9 +285,11 @@ travis_time_start after_script
 PATH=/usr/local/bin:$PATH  # for installed catkin_test_results
 PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH
 if [ "${ROS_LOG_DIR// }" == "" ]; then export ROS_LOG_DIR=~/.ros/test_results; fi # http://wiki.ros.org/ROS/EnvironmentVariables#ROS_LOG_DIR
-if [ "$BUILDER" == catkin -a -e $ROS_LOG_DIR ]; then catkin_test_results --verbose --all $ROS_LOG_DIR || error; fi
-if [ "$BUILDER" == catkin -a -e ~/ros/ws_$DOWNSTREAM_REPO_NAME/build/ ]; then catkin_test_results --verbose --all ~/ros/ws_$DOWNSTREAM_REPO_NAME/build/ || error; fi
-if [ "$BUILDER" == catkin -a -e ~/.ros/test_results/ ]; then catkin_test_results --verbose --all ~/.ros/test_results/ || error; fi
+if [ "$BUILDER" == catkin ] || [ "$BUILDER" == "$BUILDER_CMI" ]; then
+    if [ -e $ROS_LOG_DIR ]; then catkin_test_results --verbose --all $ROS_LOG_DIR || error; fi
+    if [ -e ~/ros/ws_$DOWNSTREAM_REPO_NAME/build/ ]; then catkin_test_results --verbose --all ~/ros/ws_$DOWNSTREAM_REPO_NAME/build/ || error; fi
+    if [ -e ~/.ros/test_results/ ]; then catkin_test_results --verbose --all ~/.ros/test_results/ || error; fi
+fi
 
 travis_time_end  # after_script
 
