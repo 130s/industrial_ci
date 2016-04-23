@@ -118,6 +118,9 @@ Note that some of these currently tied only to a single option, but we still lea
 * `CI_PARENT_DIR` (default: .ci_config): (NOT recommended to specify) This is the folder name that is used in downstream repositories in order to point to this repo.
 * `NOT_TEST_BUILD` (default: not set): If true, tests in build space won't be run.
 * `NOT_TEST_INSTALL` (default: not set): If true, tests in `install` space won't be run.
+* `PRERELEASE` (default: false): If `true`, run `prerelease test on docker that emulates ROS buildfarm <http://wiki.ros.org/bloom/Tutorials/PrereleaseTest/>`_. Since prerelease tests are usually necessary only when you are about to make a new version release, you're advised to put the tests that run prerelease into "allow_failures" section (or if your package is not planned to be released at all, no need to use it).
+* `PRERELEASE_DOWNSTREAM_DEPTH` (default: 1): (TBD)
+* `PRERELEASE_REPONAME` (default: not set): (TBD)
 * `PKGS_DOWNSTREAM` (default: explained): Packages in downstream to be tested. By default, `TARGET_PKGS` is used if set, if not then `BUILD_PKGS` is used.
 * `ROS_PARALLEL_JOBS` (default: -j8): Maximum number of packages to be built in parallel by the underlining build tool. As of Jan 2016, this is only enabled with `catkin_tools` (with `make` as an underlining builder).
 * `ROS_PARALLEL_TEST_JOBS` (default: -j8): Maximum number of packages which could be examined in parallel during the test run by the underlining build tool. If not set it's filled by `ROS_PARALLEL_JOBS`. As of Jan 2016, this is only enabled with `catkin_tools` (with `make` as an underlining builder).
