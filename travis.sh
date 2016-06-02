@@ -159,31 +159,31 @@ mkdir -p ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
 cd ~/ros/ws_$DOWNSTREAM_REPO_NAME/src
 case "$UPSTREAM_WORKSPACE" in
 debian)
-   echo "Obtain deb binary for upstream packages."
-   ;;
+    echo "Obtain deb binary for upstream packages."
+    ;;
 file) # When UPSTREAM_WORKSPACE is file, the dependended packages that need to be built from source are downloaded based on $ROSINSTALL_FILENAME file.
-   $ROSWS init .
-   # Prioritize $ROSINSTALL_FILENAME.$ROS_DISTRO if it exists over $ROSINSTALL_FILENAME.
-   if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO ]; then
-       # install (maybe unreleased version) dependencies from source for specific ros version
-       $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO
-   fi
-   elif [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME ]; then
-       # install (maybe unreleased version) dependencies from source
-       $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME
-   fi
-   ;;
+    $ROSWS init .
+    # Prioritize $ROSINSTALL_FILENAME.$ROS_DISTRO if it exists over $ROSINSTALL_FILENAME.
+    if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO ]; then
+        # install (maybe unreleased version) dependencies from source for specific ros version
+        $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO
+    fi
+    elif [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME ]; then
+        # install (maybe unreleased version) dependencies from source
+        $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME
+    fi
+    ;;
 http://* | https://*) # When UPSTREAM_WORKSPACE is an http url, use it directly
-   $ROSWS init .
-   $ROSWS merge $UPSTREAM_WORKSPACE
-   ;;
+    $ROSWS init .
+    $ROSWS merge $UPSTREAM_WORKSPACE
+    ;;
 esac
 
 # download upstream packages into workspace
 if [ -e .rosinstall ]; then
-   # ensure that the downstream is not in .rosinstall
-   $ROSWS rm $DOWNSTREAM_REPO_NAME || true
-   $ROSWS update
+    # ensure that the downstream is not in .rosinstall
+    $ROSWS rm $DOWNSTREAM_REPO_NAME || true
+    $ROSWS update
 fi
 # CI_SOURCE_PATH is the path of the downstream repository that we are testing. Link it to the catkin workspace
 ln -s $CI_SOURCE_PATH .
