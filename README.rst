@@ -127,7 +127,8 @@ Note that some of these currently tied only to a single option, but we still lea
 * `ROSINSTALL_FILENAME` (default: not set): See `USE_DEB` description.
 * `ROSWS` (default: wstool): Currently only `wstool` is available.
 * `TARGET_PKGS` (default: not set): Used to fill `PKGS_DOWNSTREAM` if it is not set. If not set packages are set using the output of `catkin_topological_order` for the source space.
-* `USE_DEB` (default: true): When this is set `false`, the dependended packages that need to be built from source are downloaded based on file `$ROSINSTALL_FILENAME` in your repository. See more in `this section <https://github.com/ros-industrial/industrial_ci/blob/master/README.rst#optional-build-depended-packages-from-source>`_.
+* `UPSTREAM_WORKSPACE` (default: debian): 
+* `USE_DEB` (*DEPRECATED*: use `UPSTREAM_WORKSPACE` instead. default: true): When this is set `false`, the dependended packages that need to be built from source are downloaded based on file `$ROSINSTALL_FILENAME` in your repository. See more in `this section <https://github.com/ros-industrial/industrial_ci/blob/master/README.rst#optional-build-depended-packages-from-source>`_.
 
 Note: You see some `*PKGS*` variables. These make things very flexible but in normal usecases you don't need to be bothered with them - just keep them blank.
 
@@ -243,7 +244,7 @@ By default the packages your package depend upon are installed via binaries. How
 Use .rosinstall file to specify the depended packages source repository
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Standard way is 1) set `USE_DEB` as `false`, 2) create a file `$ROSINSTALL_FILENAME` using `the same file format as .rosinstall <http://docs.ros.org/independent/api/rosinstall/html/rosinstall_file_format.html>`_ and place it at the top level directory of your package.
+Standard way is 1) set `UPSTREAM_WORKSPACE` as `file`, 2) create a file `$ROSINSTALL_FILENAME` using `the same file format as .rosinstall <http://docs.ros.org/independent/api/rosinstall/html/rosinstall_file_format.html>`_ and place it at the top level directory of your package.
 
 Have multiple .rosinstall files per ROS-distro
 ++++++++++++++++++++++++++++++++++++++++++++++
@@ -253,7 +254,7 @@ By adding `.$ROS_DISTRO` suffix to your `$ROSINSTALL_FILENAME` file, you can spe
 Use .rosinstall from external location
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-You can utilize `.rosinstall` file stored anywhere as long as its location is URL specifyable. To do so, set its URL directly to `USE_DEB`.
+You can utilize `.rosinstall` file stored anywhere as long as its location is URL specifyable. To do so, set its URL directly to `UPSTREAM_WORKSPACE`.
 
 For maintainers of industrial_ci repository
 ================================================
