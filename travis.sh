@@ -163,13 +163,14 @@ debian)
    ;;
 file) # When UPSTREAM_WORKSPACE is file, the dependended packages that need to be built from source are downloaded based on $ROSINSTALL_FILENAME file.
    $ROSWS init .
-   if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME ]; then
-       # install (maybe unreleased version) dependencies from source
-       $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME
-   fi
+   # Prioritize $ROSINSTALL_FILENAME.$ROS_DISTRO if it exists over $ROSINSTALL_FILENAME.
    if [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO ]; then
        # install (maybe unreleased version) dependencies from source for specific ros version
        $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME.$ROS_DISTRO
+   fi
+   elif [ -e $CI_SOURCE_PATH/$ROSINSTALL_FILENAME ]; then
+       # install (maybe unreleased version) dependencies from source
+       $ROSWS merge file://$CI_SOURCE_PATH/$ROSINSTALL_FILENAME
    fi
    ;;
 http://* | https://*) # When UPSTREAM_WORKSPACE is an http url, use it directly
