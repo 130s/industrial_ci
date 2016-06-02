@@ -99,7 +99,12 @@ if [ ! "$ROSINSTALL_FILENAME" ]; then export ROSINSTALL_FILENAME=".travis.rosins
 if [ ! "$APTKEY_STORE_HTTPS" ]; then export APTKEY_STORE_HTTPS="https://raw.githubusercontent.com/ros/rosdistro/master/ros.key"; fi
 if [ ! "$APTKEY_STORE_SKS" ]; then export APTKEY_STORE_SKS="hkp://ha.pool.sks-keyservers.net"; fi  # Export a variable for SKS URL for break-testing purpose.
 if [ ! "$HASHKEY_SKS" ]; then export HASHKEY_SKS="0xB01FA116"; fi
-if [ "$USE_DEB" ]; then export UPSTREAM_WORKSPACE=$USE_DEB; else export UPSTREAM_WORKSPACE="debian" fi  # USE_DEB is deprecated. See https://github.com/ros-industrial/industrial_ci/pull/47#discussion_r64882878 for the discussion.
+if [ "$USE_DEB" ]; then  # USE_DEB is deprecated. See https://github.com/ros-industrial/industrial_ci/pull/47#discussion_r64882878 for the discussion.
+    if [ "$USE_DEB" != "true" ]; then export UPSTREAM_WORKSPACE="file";
+    else export UPSTREAM_WORKSPACE="debian";
+    fi
+fi
+if [ ! "$UPSTREAM_WORKSPACE" ]; then export UPSTREAM_WORKSPACE="debian"; fi
 
 echo "Testing branch $TRAVIS_BRANCH of $DOWNSTREAM_REPO_NAME"
 # Set apt repo
