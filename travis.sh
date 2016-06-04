@@ -249,40 +249,47 @@ cd ../
 
 travis_time_end  # wstool_info
 
-travis_time_start catkin_build
+if [ "$USE_DEVEL_SPACE" == "true" ]; then
+    travis_time_start catkin_build
 
-## BEGIN: travis' script: # All commands must exit with code 0 on success. Anything else is considered failure.
-source /opt/ros/$ROS_DISTRO/setup.bash # re-source setup.bash for setting environmet vairable for package installed via rosdep
-# for catkin
-if [ "${_TARGET_PKGS// }" == "" ]; then export _TARGET_PKGS=`catkin_topological_order ${CI_SOURCE_PATH} --only-names`; fi  # `_TARGET_PKGS` (default: not set): If not set, the packages in the output of `catkin_topological_order` from the source space of your repo are to be set. This is also used to fill `PKGS_DOWNSTREAM` if it is not set. 
-if [ "${_PKGS_DOWNSTREAM// }" == "" ]; then export _PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$_TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
-if [ "$BUILDER" == catkin ]; then
-    catkin init
-    catkin config $CATKIN_TOOLS_CONFIG_ARGS
-    catkin build -i -v --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
-fi
-
-travis_time_end  # catkin_build
-
-if [ "$NOT_TEST_BUILD" != "true" ]; then
-    travis_time_start catkin_run_tests
-
-    # Patches for rostest that are only available in newer codes.
-    # Some are already available via DEBs so that patches for them are not needed, but because EOLed distros (e.g. Hydro) where those patches are not released into may be still tested, all known patches are applied here.
-    if [ "$ROS_DISTRO" == "hydro" ]; then
-        (cd /opt/ros/$ROS_DISTRO/lib/python2.7/dist-packages; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros_comm/pull/611.diff -O - | sudo patch -f -p4 || echo "ok" )
-        (cd /opt/ros/$ROS_DISTRO/lib/python2.7/dist-packages; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros/pull/82.diff -O - | sudo patch -p4)
-        (cd /opt/ros/$ROS_DISTRO/share; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros_comm/pull/611.diff -O - | sed s@.cmake.em@.cmake@ | sed 's@/${PROJECT_NAME}@@' | sed 's@ DEPENDENCIES ${_rostest_DEPENDENCIES})@)@' | sudo patch -f -p2 || echo "ok")
+    ## BEGIN: travis' script: # All commands must exit with code 0 on success. Anything else is considered failure.
+    source /opt/ros/$ROS_DISTRO/setup.bash # re-source setup.bash for setting environmet vairable for package installed via rosdep
+    # for catkin
+    if [ "${_TARGET_PKGS// }" == "" ]; then export _TARGET_PKGS=`catkin_topological_order ${CI_SOURCE_PATH} --only-names`; fi  # `_TARGET_PKGS` (default: not set): If not set, the packages in the output of `catkin_topological_order` from the source space of your repo are to be set. This is also used to fill `PKGS_DOWNSTREAM` if it is not set. 
+    if [ "${_PKGS_DOWNSTREAM// }" == "" ]; then export _PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$_TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
+    if [ "$BUILDER" == catkin ]; then
+        catkin init
+        catkin config $CATKIN_TOOLS_CONFIG_ARGS
+        catkin build -i -v --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
     fi
+
+    travis_time_end  # catkin_build
+
+    if [ "$NOT_TEST_BUILD" != "true" ]; then
+        travis_time_start catkin_run_tests
+
+        # Patches for rostest that are only available in newer codes.
+        # Some are already available via DEBs so that patches for them are not needed, but because EOLed distros (e.g. Hydro) where those patches are not released into may be still tested, all known patches are applied here.
+        if [ "$ROS_DISTRO" == "hydro" ]; then
+            (cd /opt/ros/$ROS_DISTRO/lib/python2.7/dist-packages; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros_comm/pull/611.diff -O - | sudo patch -f -p4 || echo "ok" )
+            (cd /opt/ros/$ROS_DISTRO/lib/python2.7/dist-packages; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros/pull/82.diff -O - | sudo patch -p4)
+            (cd /opt/ros/$ROS_DISTRO/share; wget --no-check-certificate https://patch-diff.githubusercontent.com/raw/ros/ros_comm/pull/611.diff -O - | sed s@.cmake.em@.cmake@ | sed 's@/${PROJECT_NAME}@@' | sed 's@ DEPENDENCIES ${_rostest_DEPENDENCIES})@)@' | sudo patch -f -p2 || echo "ok")
+        fi
+
+        if [ "$BUILDER" == catkin ]; then
+            source devel/setup.bash ; rospack profile # force to update ROS_PACKAGE_PATH for rostest
+            catkin run_tests -iv --no-deps --no-status $PKGS_DOWNSTREAM $CATKIN_PARALLEL_TEST_JOBS --make-args $ROS_PARALLEL_TEST_JOBS --
+            catkin_test_results build || error
+        fi
 
     if [ "$BUILDER" == catkin ]; then
         source devel/setup.bash ; rospack profile # force to update ROS_PACKAGE_PATH for rostest
         catkin run_tests -iv --no-deps --no-status $_PKGS_DOWNSTREAM $CATKIN_PARALLEL_TEST_JOBS --make-args $ROS_PARALLEL_TEST_JOBS --
         catkin_test_results build || error
-    fi
 
-    travis_time_end  # catkin_run_tests
-fi
+        travis_time_end  # catkin_run_tests
+    fi
+fi  # if [ "$USE_DEVEL_SPACE" == "true" ]
 
 if [ "$NOT_TEST_INSTALL" != "true" ]; then
 
