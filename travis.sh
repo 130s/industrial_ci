@@ -91,6 +91,7 @@ travis_time_start init_travis_environment
 BUILDER=catkin
 ROSWS=wstool
 export DOWNSTREAM_REPO_NAME=${PWD##*/}
+if [ ! "$USE_DEVEL_SPACE" == "true" ]; then export CATKIN_TOOLS_CONFIG_ARGS="--install"; fi  # when using devel space, nothing will be set.
 if [ ! "$CATKIN_PARALLEL_JOBS" ]; then export CATKIN_PARALLEL_JOBS="-p4"; fi
 if [ ! "$CATKIN_PARALLEL_TEST_JOBS" ]; then export CATKIN_PARALLEL_TEST_JOBS="$CATKIN_PARALLEL_JOBS"; fi
 if [ ! "$ROS_PARALLEL_JOBS" ]; then export ROS_PARALLEL_JOBS="-j8"; fi
@@ -255,7 +256,11 @@ source /opt/ros/$ROS_DISTRO/setup.bash # re-source setup.bash for setting enviro
 # for catkin
 if [ "${_TARGET_PKGS// }" == "" ]; then export _TARGET_PKGS=`catkin_topological_order ${CI_SOURCE_PATH} --only-names`; fi  # `_TARGET_PKGS` (default: not set): If not set, the packages in the output of `catkin_topological_order` from the source space of your repo are to be set. This is also used to fill `PKGS_DOWNSTREAM` if it is not set. 
 if [ "${_PKGS_DOWNSTREAM// }" == "" ]; then export _PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$_TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
-if [ "$BUILDER" == catkin ]; then catkin build -i -v --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS            ; fi
+if [ "$BUILDER" == catkin ]; then
+    catkin init
+    catkin config $CATKIN_TOOLS_CONFIG_ARGS
+    catkin build -i -v --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
+fi
 
 travis_time_end  # catkin_build
 
@@ -284,9 +289,9 @@ if [ "$NOT_TEST_INSTALL" != "true" ]; then
     travis_time_start catkin_install_build
 
     # Test if the packages in the downstream repo build.
-    if [ "$BUILDER" == catkin ]; then
+    if [ "$BUILDER" == catkin ] && [ "$USE_DEVEL_SPACE" == "true" ]; then
         catkin clean --yes
-        catkin config --install
+        catkin config --install $CATKIN_TOOLS_CONFIG_ARGS
         catkin build -i -v --summarize --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
         source install/setup.bash
         rospack profile
