@@ -36,6 +36,7 @@ matrix:
     - env: ROS_DISTRO=indigo PRERELEASE=true PRERELEASE_REPONAME=industrial_core PRERELEASE_DOWNSTREAM_DEPTH=0
     - env: ROS_DISTRO=indigo PRERELEASE=true PRERELEASE_REPONAME=ros_canopen
     - env: ROS_DISTRO=jade   PRERELEASE=true PRERELEASE_REPONAME=warehouse_ros PRERELEASE_DOWNSTREAM_DEPTH=1  # Intended to fail (as of Apr 2016), to test the capability of capturing Prerelease Test failure.
+    - env: ROS_DISTRO=jade   UPSTREAM_WORKSPACE=file  ROSINSTALL_FILENAME=.ci.rosinstall
     - env: ROS_DISTRO=kinetic
 before_script:
   - CI_DIR=.ci_config
