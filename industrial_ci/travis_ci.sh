@@ -252,11 +252,11 @@ if [ "$USE_DEVEL_SPACE" == "true" ]; then
     source /opt/ros/$ROS_DISTRO/setup.bash # re-source setup.bash for setting environmet vairable for package installed via rosdep
     # for catkin
     if [ "${TARGET_PKGS// }" == "" ]; then export TARGET_PKGS=`catkin_topological_order ${TARGET_REPO_PATH} --only-names`; fi
-    if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS"); fi
+    if [ "${PKGS_DOWNSTREAM// }" == "" ]; then export PKGS_DOWNSTREAM=$( [ "${BUILD_PKGS_WHITELIST// }" == "" ] && echo "$TARGET_PKGS" || echo "$BUILD_PKGS_WHITELIST"); fi
     if [ "$BUILDER" == catkin ]; then
         catkin init
         catkin config $CATKIN_TOOLS_CONFIG_ARGS
-        catkin build -i -v --summarize  --no-status $BUILD_PKGS $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
+        catkin build -i -v --summarize  --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
     fi
 
     travis_time_end  # catkin_build
@@ -290,7 +290,7 @@ if [ "$NOT_TEST_INSTALL" != "true" ]; then
     if [ "$BUILDER" == catkin ] && [ "$USE_DEVEL_SPACE" == "true" ]; then
         catkin clean --yes
         catkin config --install $CATKIN_TOOLS_CONFIG_ARGS
-        catkin build -i -v --summarize --no-status $BUILD_PKGS $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
+        catkin build -i -v --summarize --no-status $BUILD_PKGS_WHITELIST $CATKIN_PARALLEL_JOBS --make-args $ROS_PARALLEL_JOBS
         source install/setup.bash
         rospack profile
     fi
