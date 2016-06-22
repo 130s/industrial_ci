@@ -77,8 +77,8 @@ if [[ "$ROS_DISTRO" == "kinetic" ]] && ! [ "$IN_DOCKER" ]; then
       -e ROSWS \
       -e TARGET_PKGS \
       -e USE_DEBROS_DISTRO \
-      -v $(pwd):/root/ci_src industrial-ci/xenial \
-      /bin/bash -c "cd /root/ci_src; source travis_ci.sh;"
+      -v $TARGET_REPO_PATH/:/root/ci_src industrial-ci/xenial \
+      /bin/bash -c "cd /root/ci_src; source .ci_config/travis.sh;"
   retval=$?
   if [ $retval -eq 0 ]; then HIT_ENDOFSCRIPT=true; success 0; else exit; fi  # Call  travis_time_end  run_travissh_docker
 fi
