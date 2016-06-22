@@ -87,6 +87,7 @@ fi
 travis_time_start init_travis_environment
 # Define more env vars
 BUILDER=catkin
+CI_MAIN_PKG=industrial_ci
 ROSWS=wstool
 export DOWNSTREAM_REPO_NAME=${PWD##*/}
 if [ ! "$USE_DEVEL_SPACE" == "true" ]; then export CATKIN_TOOLS_CONFIG_ARGS="--install"; fi  # when using devel space, nothing will be set.
@@ -203,7 +204,7 @@ fi
 ln -s $CI_SOURCE_PATH .
 
 # Disable metapackage
-find -L . -name package.xml -print -exec ${CI_SOURCE_PATH}/$CI_PARENT_DIR/check_metapackage.py {} \; -a -exec bash -c 'touch `dirname ${1}`/CATKIN_IGNORE' funcname {} \;
+find -L . -name package.xml -print -exec ${CI_SOURCE_PATH}/$CI_PARENT_DIR/$CI_MAIN_PKG/check_metapackage.py {} \; -a -exec bash -c 'touch `dirname ${1}`/CATKIN_IGNORE' funcname {} \;
 
 source /opt/ros/$ROS_DISTRO/setup.bash # ROS_PACKAGE_PATH is important for rosdep
 # Save .rosinstall file of this tested downstream repo, only during the runtime on travis CI
@@ -226,6 +227,8 @@ travis_time_start rosdep_install
 # Run "rosdep install" command. Avoid manifest.xml files if any.
 if [ -e ${CI_SOURCE_PATH}/$CI_PARENT_DIR/rosdep-install.sh ]; then
     ${CI_SOURCE_PATH}/$CI_PARENT_DIR/rosdep-install.sh
+elif [ -e ${CI_SOURCE_PATH}/rosdep-install.sh ]; then
+    ${CI_SOURCE_PATH}/rosdep-install.sh
 fi
 
 travis_time_end  # rosdep_install

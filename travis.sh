@@ -33,5 +33,5 @@
 
 # Call the "core" executable of this repo to run all kinds of tests.
 cd ./industrial_ci
-source ./travis.sh
+source ./travis_ci.sh
 cd ..  # Moves back to the repository root dir.
