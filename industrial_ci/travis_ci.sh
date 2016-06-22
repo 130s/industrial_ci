@@ -52,7 +52,7 @@ trap success SIGTERM  # So that this script won't terminate without verifying th
 # The Dockerfile in this repository defines a Ubuntu 16.04 container
 if [[ "$ROS_DISTRO" == "kinetic" ]] && ! [ "$IN_DOCKER" ]; then
   travis_time_start build_docker_image
-  docker build -t industrial-ci/xenial .ci_config
+  docker build -t industrial-ci/xenial .
   travis_time_end  # build_docker_image
 
   travis_time_start run_travissh_docker
@@ -78,7 +78,7 @@ if [[ "$ROS_DISTRO" == "kinetic" ]] && ! [ "$IN_DOCKER" ]; then
       -e TARGET_PKGS \
       -e USE_DEBROS_DISTRO \
       -v $(pwd):/root/ci_src industrial-ci/xenial \
-      /bin/bash -c "cd /root/ci_src; source .ci_config/travis.sh;"
+      /bin/bash -c "cd /root/ci_src; source travis_ci.sh;"
   retval=$?
   if [ $retval -eq 0 ]; then HIT_ENDOFSCRIPT=true; success 0; else exit; fi  # Call  travis_time_end  run_travissh_docker
 fi
