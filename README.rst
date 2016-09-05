@@ -349,3 +349,9 @@ Checks for industrial_ci repo itself
 ---------------------------------------
 
 While this repository provides CI config that can be used by other repositories, it also checks this repo itself using the same CI config and the simplest package setting. That is why this repo contains the ROS package files and a test (`CMakeLists.txt`, `package.xml`, `.test`).
+
+Optional environment variables for maintenance
+------------------------------------------------
+
+* `_CI_INVERTERROR` (default: not set): Can be used when you want to invert the command result so that the true-negative can be captured in the CI result. See `this thread <https://github.com/ros-industrial/industrial_ci/pull/79>`_
+
