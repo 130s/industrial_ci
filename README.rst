@@ -146,7 +146,7 @@ Optional environment variables
 
 Note that some of these currently tied only to a single option, but we still leave them for the future when more options become available (e.g. ament with BUILDER).
 
-* `ADDITIONAL_DEBS` (default: not set): More DEBs to be used. List the name of DEB(s delimitted by whitespace if multiple DEBs specified). Needs to be full-qualified Ubuntu package name. E.g.: "ros-indigo-roslint ros-indigo-gazebo-ros" (without quotation).
+* `ADDITIONAL_DEBS` (default: not set): More DEBs to be used. List the name of DEB(s delimitted by whitespace if multiple DEBs specified). Needs to be full-qualified Ubuntu package name. E.g.: "ros-indigo-roslint ros-indigo-gazebo-ros" (without quotation). Therefore, be sure not to mix the distros for ROS packages (e.g. hydro and indigo).
 * `BEFORE_SCRIPT`: (default: not set): Used to specify shell commands that run before building packages.
 * `BUILD_PKGS_WHITELIST` (default: not set): Packages to be built can be explicitly specified with this, in ROS package name format (i.e. using underscore. No hyphen). This is useful when your repo contains some packages that you don't want to be used upon testing. Downstream packages, if necessary, should be also specified using this. Also these packages are to be built when `NOT_TEST_INSTALL` is set. Finally, packages specified with this will be built together with those speicified using unimplmented `USE_DEB`.
 * `BUILDER` (default: catkin): Currently only `catkin` is implemented (and with that `catkin_tools` is used instead of `catkin_make`. See `this discussion <https://github.com/ros-industrial/industrial_ci/issues/3>`_).
@@ -353,5 +353,4 @@ While this repository provides CI config that can be used by other repositories,
 Optional environment variables for maintenance
 ------------------------------------------------
 
-* `_CI_INVERTERROR` (default: not set): Can be used when you want to invert the command result so that the true-negative can be captured in the CI result. See `this thread <https://github.com/ros-industrial/industrial_ci/pull/79>`_
-
+* `_CI_INVERTERROR` (default: not set): Can be used when you need to invert the command result (e.g. when you want to capture true-negative, much like `assertFalse` in Python unittest, in the CI result). Turning this variable doesn't do anything and you have to implement the logic. See `this thread <https://github.com/ros-industrial/industrial_ci/pull/79>`_
