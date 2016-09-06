@@ -124,7 +124,7 @@ sudo apt-get update || (echo "ERROR: apt server not responding. This is a rare s
 sudo apt-get -qq install -y python-catkin-tools python-rosdep python-wstool ros-$ROS_DISTRO-rosbash ros-$ROS_DISTRO-rospack
 # If more DEBs needed during preparation, define ADDITIONAL_DEBS variable where you list the name of DEB(S, delimitted by whitespace)
 if [ ! -z $ADDITIONAL_DEBS ]; then
-    sudo apt-get -qq install -y $ADDITIONAL_DEBS
+    sudo apt-get install -y $ADDITIONAL_DEBS
     echo "DEBUG; $?"
     if [[ $? > 0 ]]; then
         echo "One or more additional deb installation is failed."
