@@ -125,6 +125,7 @@ sudo apt-get -qq install -y python-catkin-tools python-rosdep python-wstool ros-
 # If more DEBs needed during preparation, define ADDITIONAL_DEBS variable where you list the name of DEB(S, delimitted by whitespace)
 if [ ! -z $ADDITIONAL_DEBS ]; then
     sudo apt-get -qq install -y $ADDITIONAL_DEBS
+    echo "DEBUG; $?"
     if [[ $? > 0 ]]; then
         echo "One or more additional deb installation is failed."
         if [ "$_CI_INVERTERROR" == true ]; then echo "We want to check true-negative (e.g. when testing this repo itself) and will ignore the apt error. See https://github.com/ros-industrial/industrial_ci/pull/79";
