@@ -124,8 +124,8 @@ sudo apt-get update || (echo "ERROR: apt server not responding. This is a rare s
 sudo apt-get -qq install -y python-catkin-tools python-rosdep python-wstool ros-$ROS_DISTRO-rosbash ros-$ROS_DISTRO-rospack
 # If more DEBs needed during preparation, define ADDITIONAL_DEBS variable where you list the name of DEB(S, delimitted by whitespace)
 if [ ! -z $ADDITIONAL_DEBS ]; then
-    sudo apt-get install -y $ADDITIONAL_DEBS || echo "DEBUG; $?";
-    if [[ $? > 0 ]]; then
+    sudo apt-get install -y $ADDITIONAL_DEBS || RES_ADDITIONAL_DEBS=$?;
+    if [[ $RES_ADDITIONAL_DEBS > 0 ]]; then
         echo "One or more additional deb installation is failed."
         if [ "$_CI_INVERTERROR" == true ]; then echo "We want to check true-negative (e.g. when testing this repo itself) and will ignore the apt error. See https://github.com/ros-industrial/industrial_ci/pull/79";
         else echo "Exiting."; error;
