@@ -93,6 +93,7 @@ ici_time_start setup_rosws
 export CATKIN_WORKSPACE=~/catkin_ws
 mkdir -p $CATKIN_WORKSPACE/src
 $ROSWS init $CATKIN_WORKSPACE/src
+
 case "$UPSTREAM_WORKSPACE" in
 debian)
     echo "Obtain deb binary for upstream packages."
