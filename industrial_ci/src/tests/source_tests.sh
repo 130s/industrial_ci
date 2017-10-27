@@ -85,12 +85,6 @@ export CATKIN_WORKSPACE=~/catkin_ws
 mkdir -p $CATKIN_WORKSPACE/src
 $ROSWS init $CATKIN_WORKSPACE/src
 
-# SSH keys when using the Docker executor https://docs.gitlab.com/ee/ci/ssh_keys/README.html
-echo "DEBUG) SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}"
-if [ ! -z "$SSH_PRIVATE_KEY" ]; then
-    inject_sshkey
-fi
-
 case "$UPSTREAM_WORKSPACE" in
 debian)
     echo "Obtain deb binary for upstream packages."
