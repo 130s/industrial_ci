@@ -32,7 +32,7 @@ if [ -n "$SSH_PRIVATE_KEY" ]; then
   bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
   mkdir -p ~/.ssh
   # setup known hosts
-  #echo "$SSH_SERVER_HOSTKEYS" >> ~/.ssh/known_hosts 
+  echo "$SSH_SERVER_HOSTKEYS" >> ~/.ssh/known_hosts 
 fi
 
 env "$@" bash $DIR_THIS/industrial_ci/src/ci_main.sh
