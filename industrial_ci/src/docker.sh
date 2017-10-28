@@ -68,6 +68,7 @@ function ici_run_cmd_in_docker() {
 
   #forward ssh agent into docker container
  local ssh_docker_opts=()
+ echo "DEBUG1 ${SSH_AUTH_SOCK}"
   if [ "$SSH_AUTH_SOCK" ]; then
      local auth_dir
      auth_dir=$(dirname "$SSH_AUTH_SOCK")
@@ -85,11 +86,15 @@ function ici_run_cmd_in_docker() {
       "$@")
   if [ -d ~/.ssh ]; then
     docker cp ~/.ssh "$cid:/root/" # pass SSH settings to container
+    echo "DEBUG2 .ssh copied"
+    ls -al ~/.ssh
+    more ~/.ssh/known_hosts
   fi
   if [ -d ~/.subversion ]; then
     docker cp ~/.subversion "$cid:/root/" # pass svn auth to container
   fi
 
+  echo "DEBUG3 ${cid}"
   docker start -a "$cid" &
   trap 'docker kill $cid' INT
   local ret=0
