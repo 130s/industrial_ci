@@ -214,6 +214,7 @@ Note that some of these currently tied only to a single option, but we still lea
 * **USE_MOCKUP** (default: not set): reletive path to mockup packages to be used for the tests
 * **VERBOSE_OUTPUT** (default: not set): If `true`, build tool (e.g. Catkin) output prints in verbose mode.
 * **VERBOSE_TESTS** (default: true): If `true`, build tool (e.g. Catkin) output prints in verbose mode during `run_tests` step.
+* **YAML_LINT** (default: false): If `true`, run `yaml_lint <http://manpages.ubuntu.com/manpages/artful/man1/yamllint.1.html>`_ (i.e. this feature works on only where yaml_lint is available) against the entire repo. The CI job fails if there's any error occurs. You can pass your own config file to yaml_lint by defining ``YAML_LINT_CONFPATH`` with the file's path..
 
 Note: You see some `*PKGS*` variables. These make things very flexible but in normal usecases you don't need to be bothered with them - just keep them blank.
 
