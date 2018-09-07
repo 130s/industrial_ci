@@ -182,7 +182,7 @@ function ici_enforce_deprecated {
 #   Pass/Fail (bool)
 #######################################
 function run_yamllint {
-	TARGET_PATH_DEFAULT="*.rosinstall* ."
+	TARGET_PATH_DEFAULT='*.rosinstall* .'
     yamllint_conf=$1
     target_paths=${2:-"$TARGET_PATH_DEFAULT"}  # multiple elements delimitted by space.
     sudo apt-get install -qq -y python3-pkg-resources yamllint || (echo "WARN: Required package 'yaml_lint' isn't available. Skipping to check yaml files." && return);
