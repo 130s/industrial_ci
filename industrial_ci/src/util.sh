@@ -206,7 +206,7 @@ function run_yamllint {
     fi
 
     # Need to remove quotes from target_paths https://stackoverflow.com/a/10943857/577001
-    yamllint -c "${yamllint_conf}" "$target_paths";
+    yamllint -c "${yamllint_conf}" $target_paths;
     return $?
 }
 
