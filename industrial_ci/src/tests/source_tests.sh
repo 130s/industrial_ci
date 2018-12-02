@@ -38,6 +38,15 @@ else
     OPT_RUN_V="-v"
 fi
 
+# execute BEFORE_SCRIPT in repository, exit on errors
+if [ "${BEFORE_SCRIPT// }" != "" ]; then
+  ici_time_start before_script
+
+  bash -e -c "cd $TARGET_REPO_PATH; ${BEFORE_SCRIPT}"
+
+  ici_time_end  # before_script
+fi
+
 ici_time_start init_ici_environment
 # Define more env vars
 BUILDER=catkin
@@ -135,16 +144,6 @@ catkin config --install
 if [ -n "$CATKIN_CONFIG" ]; then eval catkin config $CATKIN_CONFIG; fi
 
 ici_time_end  # setup_rosws
-
-
-# execute BEFORE_SCRIPT in repository, exit on errors
-if [ "${BEFORE_SCRIPT// }" != "" ]; then
-  ici_time_start before_script
-
-  bash -e -c "cd $TARGET_REPO_PATH; ${BEFORE_SCRIPT}"
-
-  ici_time_end  # before_script
-fi
 
 ici_time_start rosdep_install
 
